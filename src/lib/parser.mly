@@ -5,5 +5,6 @@
 %}
 
 %token                 EOF
+%token <int>           LITINT
 
 %%
