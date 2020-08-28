@@ -14,8 +14,9 @@
 let spaces = [' ' '\t']+
 
 rule token = parse
-  | spaces              { token lexbuf }
-  | '\n'                { L.new_line lexbuf; token lexbuf }
-  | ['0' - '9']+ as lxm { LITINT (int_of_string lxm) }
-  | eof                 { EOF }
-  | _                   { illegal_character (Location.curr_loc lexbuf) (L.lexeme_char lexbuf 0) }
+  | spaces                  { token lexbuf }
+  | '\n'                    { L.new_line lexbuf; token lexbuf }
+  | ['0' - '9']+ as lxm     { LITINT (int_of_string lxm) }
+  | "true" | "false" as lxm { BOOL (bool_of_string lxm) }
+  | eof                     { EOF }
+  | _                       { illegal_character (Location.curr_loc lexbuf) (L.lexeme_char lexbuf 0) }
