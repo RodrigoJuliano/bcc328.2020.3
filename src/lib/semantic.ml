@@ -66,7 +66,7 @@ let rec check_exp env (pos, (exp, tref)) =
   | A.RealExp _ -> set tref T.REAL
   | A.StringExp _ -> set tref T.STRING
   | A.LetExp (decs, body) -> check_exp_let env pos tref decs body
-  | A.BinaryExp bexp -> set tref (check_bin_exp env pos bexp)
+  | A.BinaryExp bexp -> set tref (check_bin_exp env bexp)
   | A.NegativeExp lexp -> set tref (check_neg_exp env lexp)
   | A.ExpSeq seq -> set tref (check_exp_seq env seq)
   | A.IfExp exp -> set tref (check_if_exp env exp)
@@ -100,7 +100,7 @@ and check_dec env (pos, dec) =
   | A.VarDec x -> check_dec_var env pos x
   | _ -> Error.fatal "unimplemented"
 
-and check_bin_exp env pos (expl, op, expr) =
+and check_bin_exp env (expl, op, expr) =
   match op with
   | Plus
   | Minus
@@ -118,8 +118,16 @@ and check_bin_exp env pos (expl, op, expr) =
     | t -> type_mismatch_numeric (loc expl) t)
   | Equal
   | NotEqual ->
-    compatible (check_exp env expr) (check_exp env expl) pos;
-    T.BOOL
+    (match check_exp env expl with
+    | T.INT
+    | T.REAL ->
+      (match check_exp env expr with
+      | T.INT
+      | T.REAL -> T.BOOL
+      | t -> type_mismatch_numeric (loc expr) t)
+    | _ ->
+      compatible (check_exp env expr) (check_exp env expl) (loc expr);
+      T.BOOL)
   | GreaterThan
   | GreaterEqual
   | LowerThan
