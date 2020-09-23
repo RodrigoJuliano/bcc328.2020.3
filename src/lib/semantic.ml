@@ -127,7 +127,7 @@ and check_params env params analized =
   | [] -> []
   | (pos, ((id, ty), tref))::xs ->
     if List.mem id analized then
-      Error.error pos "redefinition of parameter %s" (fst id)
+      Error.error pos "redefinition of parameter '%s'" (fst id)
     else
       let pty = tylook env.tenv ty pos in
       ignore (set tref pty);

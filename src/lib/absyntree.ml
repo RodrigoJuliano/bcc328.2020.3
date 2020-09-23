@@ -81,7 +81,6 @@ and tree_of_var var =
   match var with
   | SimpleVar x -> mktr (sprintf "SimpleVar %s" (Symbol.name x)) []
 
-
 and tree_of_dec dec =
   match dec with
   | VarDec vardec -> tree_of_typed tree_of_vardec vardec
