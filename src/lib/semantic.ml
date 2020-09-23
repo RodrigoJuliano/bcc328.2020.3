@@ -90,26 +90,30 @@ and check_dec_var env pos ((name, type_opt, init), tref) =
 and check_dec env (pos, dec) =
   match dec with
   | A.VarDec x -> check_dec_var env pos x
-  | A.FunDec x ->
-    let env' = check_dec_fun_1 env pos x in
-    check_dec_fun_2 env' pos x;
-    env'
+  | A.FunDecGroup g -> check_dec_fun_group env g
   | _ -> Error.fatal "unimplemented"
 
-and check_dec_fun_1 env pos ((id, params, ty, _), tref) =
+and check_dec_fun_group env g =
+  (* Primeira fase *)
+  let env' = List.fold_left check_dec_fun_1 env g in
+  (* Segunda fase *)
+  List.iter (check_dec_fun_2 env') g;
+  env'
+ 
+and check_dec_fun_1 env (pos, ((id, params, ty, _), tref)) =
   let ty_list = check_params env params []
   and fun_ty = tylook env.tenv ty pos in
   let venv' = S.enter id (FunEntry (ty_list, fun_ty)) env.venv in
   ignore (set tref fun_ty);
   {env with venv=venv'}
 
-and check_dec_fun_2 env pos ((id, params, _, exp), _) =
+and check_dec_fun_2 env (pos, ((id, params, _, exp), _)) =
   let (_, t) = funlook env.venv id pos in
   let env' = List.fold_left add_param env params in
   let body_ty = check_exp env' exp in
   compatible body_ty t pos;
 
-(* Adiciona um parâmetro ao ambiente como variável local *)
+(* Adiciona um parâmetro ao ambiente como *)
 and add_param env (pos, ((id, ty), _)) =
   let pty = tylook env.tenv ty pos in
   let venv' = S.enter id (VarEntry pty) env.venv in
@@ -130,18 +134,23 @@ and check_params env params analized =
       pty :: (check_params env xs (id::analized))
   
 and check_call_exp env pos tref id params =
-  let (ps, ty) = funlook env.venv id pos
-  and ty_list = List.map (check_exp env) params in
+  (* tipos dos parametros e do resultado *)
+  let (ps, ty) = funlook env.venv id pos in
   let len_e = List.length ps
-  and len_f = List.length ty_list
-  and comp a b = compatible a b pos in (* TODO: posição correta*)
+  and len_f = List.length params in
+  (* Verifica o número de argumentos *)
   if len_e > len_f then
     Error.error pos "Too few arguments, expected %d found %d" len_e len_f
   else if len_e < len_f then
     Error.error pos "Too many arguments, expected %d found %d" len_e len_f
   else
-    List.iter2 comp ty_list ps;
+    (* Verifica se os parametros da chamada são compatíveis com os da definição*)
+    List.iter2 (check_param_type env) params ps;
     set tref ty
+
+and check_param_type env (pos, exp) def_ty =
+  let ty = check_exp env (pos, exp) in
+  compatible ty def_ty pos
 
 let semantic program =
   check_exp Env.initial program

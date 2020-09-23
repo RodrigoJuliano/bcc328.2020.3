@@ -104,7 +104,10 @@ var:
 (* declarations *)
 dec:
 | VAR x=ID t=optional_type EQ e=exp            {$loc, VarDec (dummyt (x, t, e))}
-| FUNC x=ID p=param_list COLON t=ID EQ e=exp   {$loc, FunDec (dummyt (x, p, t, e))}
+| g=nonempty_list(fun_dec)                     {$loc, FunDecGroup g}
+
+fun_dec:
+| FUNC x=ID p=param_list COLON t=ID EQ e=exp   {$loc % (x, p, t, e)}
 
 optional_type:
 | ot=option(COLON t=ID {t})                    {ot}

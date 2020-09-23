@@ -81,11 +81,11 @@ and tree_of_var var =
   match var with
   | SimpleVar x -> mktr (sprintf "SimpleVar %s" (Symbol.name x)) []
 
-  
+
 and tree_of_dec dec =
   match dec with
   | VarDec vardec -> tree_of_typed tree_of_vardec vardec
-  | FunDec fundec -> tree_of_typed tree_of_fundec fundec
+  | FunDecGroup g -> mktr "FunDecGroup" (List.map tree_of_lfundec g)
 
 and tree_of_vardec (v, t, i) =
   mktr "VarDec" [ tree_of_symbol v;
@@ -93,7 +93,7 @@ and tree_of_vardec (v, t, i) =
                   tree_of_lexp i ]
 
 and tree_of_fundec (f, p, t, e) =
-  mktr "FunDec" [ tree_of_symbol f;
+    mktr "FunDec" [ tree_of_symbol f;
                   tree_of_param_list p;
                   tree_of_symbol t;
                   tree_of_lexp e ]
@@ -102,8 +102,6 @@ and tree_of_param_list p = mktr "Paramlist" (List.map tree_of_lparam p)
 
 and tree_of_param (x, t) = mktr "Param" [tree_of_symbol x; tree_of_symbol t]
 
-and tree_of_lparam (_, x) = tree_of_typed tree_of_param x
-
 (* Convert an anotated expression to a generic tree *)
 and tree_of_lexp (_, x) = tree_of_exp x
 
@@ -111,3 +109,6 @@ and tree_of_lvar (_, x) = tree_of_var x
 
 and tree_of_ldec (_, x) = tree_of_dec x
 
+and tree_of_lfundec (_, x) = tree_of_typed tree_of_fundec x
+
+and tree_of_lparam (_, x) = tree_of_typed tree_of_param x
