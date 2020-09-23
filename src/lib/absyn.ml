@@ -49,9 +49,13 @@ and var =
 
 and dec =
   | VarDec of vardec typed
+  | FunDec of fundec typed
   [@@deriving show]
 
 and vardec = Symbol.symbol * Symbol.symbol option * lexp
+  [@@deriving show]
+
+and fundec = symbol * lparam list * symbol * lexp
   [@@deriving show]
 
 and lexp = exp Location.loc  (* exp anotated with a location *)
@@ -61,6 +65,12 @@ and lvar = var Location.loc
   [@@deriving show]
 
 and ldec = dec Location.loc
+  [@@deriving show]
+
+and param = (symbol * symbol) typed
+  [@@deriving show]
+
+and lparam = param Location.loc
   [@@deriving show]
 
 (* Annotate an ast with a dummy type representation *)

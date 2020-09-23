@@ -44,6 +44,7 @@
 %token                 VAR
 %token                 WHILE
 %token                 UMINUS
+%token                 FUNC
 
 %right                 OR
 %right                 AND
@@ -103,6 +104,13 @@ var:
 (* declarations *)
 dec:
 | VAR x=ID t=optional_type EQ e=exp            {$loc, VarDec (dummyt (x, t, e))}
+| FUNC x=ID p=param_list COLON t=ID EQ e=exp   {$loc, FunDec (dummyt (x, p, t, e))}
 
 optional_type:
 | ot=option(COLON t=ID {t})                    {ot}
+
+param:
+| x=ID COLON t=ID                              {$loc % (x, t)}
+
+param_list:
+| LPAREN pl=separated_list(COMMA, param) RPAREN {pl}
