@@ -109,8 +109,9 @@
     let block = Llvm.append_block context "start" f in
     Llvm.position_at_end block builder;
     let five = Llvm.const_int int_type 5 in
+    let result = Llvm.build_call triple [|five|] "result" builder in
     let msg = Llvm.build_global_stringptr "%d\n" "" builder in
-    let _ = Llvm.build_call printf [|msg; five|] "calltmp" builder in
+    let _ = Llvm.build_call printf [|msg; result|] "calltmp" builder in
     let ret = Llvm.const_int int_type 0 in
     let _ = Llvm.build_ret ret builder in
     Llvm_analysis.assert_valid_function f;
@@ -157,7 +158,8 @@
 
   define i32 @main() {
   start:
-    %calltmp = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0), i32 5)
+    %result = call i32 @triple(i32 5)
+    %calltmp = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0), i32 %result)
     ret i32 0
   }
   ```
